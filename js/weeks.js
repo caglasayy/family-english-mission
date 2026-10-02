@@ -204,6 +204,7 @@ const WEEKS_KEREM = [
       {e:'🎁',en:'had',tr:'sahipti / vardı'},{e:'🏠',en:'came',tr:'geldi'}
     ],
     videoId: 'n7MLTV7UZPY',
+    localVideo: 'past tense.mp4',
     videoChapters: ['Geçmiş Zaman','Düzenli Fiiller (-ed)','Düzensiz Fiiller','Yesterday / Last','Alıştırma'],
     quiz: [
       {q:'I ___ football yesterday.', opts:['play','played','playing'], ans:1},
@@ -262,6 +263,7 @@ const WEEKS_KEREM = [
       {e:'🤔',en:'maybe',tr:'belki'},{e:'🌟',en:'promise',tr:'söz vermek'}
     ],
     videoId: 'g6UAU3fHtyc',
+    localVideo: 'future tense.mp4',
     videoChapters: ['Will Nedir?','Gelecek Tahminleri','Won\'t Kullanımı','Will you...?','2050 Yılı Hayali'],
     quiz: [
       {q:'I think our team ___ win the match!', opts:['is','will','goes'], ans:1},
@@ -291,6 +293,7 @@ const WEEKS_KEREM = [
       {e:'📅',en:'this weekend',tr:'bu hafta sonu'},{e:'🎉',en:'celebrate',tr:'kutlamak'}
     ],
     videoId: 'WpF5sMPNjPs',
+    localVideo: 'future tense.mp4',
     videoChapters: ['Going to Nedir?','Will vs Going to','Olumsuz Planlar','Are you going to...?','Tatil Planım'],
     quiz: [
       {q:'I ___ going to meet my friends on Saturday.', opts:['am','is','will'], ans:0},
@@ -382,6 +385,7 @@ const WEEKS_BABA = [
       {e:'🔄',en:'frequently',tr:'sık sık'},{e:'⚡',en:'efficiently',tr:'verimli bir şekilde'}
     ],
     videoId: 'WpF5sMPNjPs',
+    localVideo: 'present simple.mp4',
     videoChapters: ['Geniş Zaman Yapısı','He/She/It (-s Kuralı)','Olumsuz (Don\'t / Doesn\'t)','Soru (Do / Does)','İleri Cümle Pratiği'],
     quiz: [
       {q:'Our director ___ every project carefully and ___ constructive feedback.', opts:['evaluate / give','evaluates / gives','evaluates / give'], ans:1},
@@ -416,6 +420,7 @@ const WEEKS_BABA = [
       {e:'🌱',en:'develop',tr:'geliştirmek'},{e:'🌐',en:'nowadays',tr:'bugünlerde'}
     ],
     videoId: 'g6UAU3fHtyc',
+    localVideo: 'Present Continuous.mp4',
     videoChapters: ['Am / Is / Are + V-ing','Currently & Nowadays','Olumsuz & Soru Yapısı','Değişen Trendleri Anlatma','Konuşma Pratiği'],
     quiz: [
       {q:'We ___ currently implementing a more secure software system.', opts:['do','are','have'], ans:1},
@@ -450,6 +455,7 @@ const WEEKS_BABA = [
       {e:'📝',en:'approve (approved)',tr:'onaylamak'},{e:'🎯',en:'significant',tr:'önemli / kayda değer'}
     ],
     videoId: 'n7MLTV7UZPY',
+    localVideo: 'past tense.mp4',
     videoChapters: ['V2: Düzenli & Düzensiz Fiiller','İleri İş Fiilleri (Overcame/Led)','Olumsuz: Didn\'t + V1','Soru: Did + S + V1?','Geçmiş Anlatım Pratiği'],
     quiz: [
       {q:'Our team ___ several tough challenges during the project last year.', opts:['overcome','overcame','overcoming'], ans:1},
@@ -484,6 +490,7 @@ const WEEKS_BABA = [
       {e:'🗓️',en:'upcoming',tr:'yaklaşan / gelecek'},{e:'⏳',en:'in the long run',tr:'uzun vadede'}
     ],
     videoId: 'LCyGPZ7RPHE',
+    localVideo: 'future tense.mp4',
     videoChapters: ['Will vs Be Going To','Stratejik Planlar (Going to)','Öngörüler (Will / Won\'t)','Gelecek Zaman Soruları','Konuşma Pratiği'],
     quiz: [
       {q:'We have already finalized the plan; we ___ upgrade our servers this weekend.', opts:['will','are going to','going to'], ans:1},
