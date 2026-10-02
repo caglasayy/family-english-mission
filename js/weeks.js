@@ -323,6 +323,7 @@ const WEEKS_KEREM = [
       {e:'💡',en:'should',tr:'-meli (tavsiye)'},{e:'🌍',en:'the biggest',tr:'en büyük'}
     ],
     videoId: 'n7MLTV7UZPY',
+    localVideo: 'bigger.mp4',
     videoChapters: ['Faster / Bigger','More ... than','The Best / The Biggest','Can / Should / Must','Alıştırma'],
     quiz: [
       {q:'An elephant is ___ than a lion.', opts:['big','bigger','more big'], ans:1},
