@@ -27,25 +27,167 @@ function go(id) {
 
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => go(b.dataset.panel));
 
+const SCORE_SYNC_TOPIC = 'family_eng_mission_poliai_v1';
+const SCORE_STORAGE_KEY = 'fem_shared_scores_v1';
+const CLIENT_ID = 'c_' + Math.random().toString(36).slice(2, 10);
+let lastAppliedTs = 0;
+let scoreBroadcast = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('fem_score_channel') : null;
+
 function setProfile(name) {
     state.currentUser = name;
-    state.xp[name] += 10;
-    updateScore();
-    toast('Hoş geldin ' + name + '! 🚀 +10 XP');
+    updateScore(true);
+    toast('Hoş geldin ' + name + '! 🚀');
     document.body.className = 'profile-' + name.toLowerCase();
     const welcome = document.getElementById('welcomeSection');
     if (welcome) welcome.style.display = 'none';
     go('home');
 }
 
-function updateScore() {
+function renderScoreUI() {
     const kEl = document.getElementById('keremXP');
     const bEl = document.getElementById('babaXP');
     const fEl = document.getElementById('familyLevel');
-    if(kEl) kEl.textContent = state.xp.Kerem + ' XP';
-    if(bEl) bEl.textContent = state.xp.Baba + ' XP';
-    if(fEl) fEl.textContent = Math.floor((state.xp.Kerem + state.xp.Baba) / 50) + 1;
+    const dkEl = document.getElementById('duelKerem');
+    const dbEl = document.getElementById('duelBaba');
+    if (kEl) kEl.textContent = state.xp.Kerem + ' XP';
+    if (bEl) bEl.textContent = state.xp.Baba + ' XP';
+    if (fEl) fEl.textContent = Math.max(1, Math.floor((state.xp.Kerem + state.xp.Baba) / 50) + 1);
+    if (dkEl) dkEl.textContent = state.duel.Kerem + ' Puan';
+    if (dbEl) dbEl.textContent = state.duel.Baba + ' Puan';
 }
+
+function updateScore(skipCloudPush) {
+    renderScoreUI();
+    if (skipCloudPush) return;
+    syncScoresOnline('update');
+}
+
+function syncScoresOnline(actionType) {
+    const payload = {
+        xp: { Kerem: Number(state.xp.Kerem) || 0, Baba: Number(state.xp.Baba) || 0 },
+        duel: { Kerem: Number(state.duel.Kerem) || 0, Baba: Number(state.duel.Baba) || 0 },
+        action: actionType || 'update',
+        by: state.currentUser || 'Kerem',
+        clientId: CLIENT_ID,
+        ts: Date.now()
+    };
+    lastAppliedTs = payload.ts;
+    try {
+        localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(payload));
+    } catch (e) {}
+    if (scoreBroadcast) {
+        try { scoreBroadcast.postMessage(payload); } catch (e) {}
+    }
+    fetch(`https://ntfy.sh/${SCORE_SYNC_TOPIC}`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    }).catch(() => {});
+}
+
+function applyRemoteScorePayload(data, showToastNotification) {
+    if (!data || !data.xp || !data.ts) return;
+    if (data.ts <= lastAppliedTs) return;
+    lastAppliedTs = data.ts;
+
+    state.xp.Kerem = Number(data.xp.Kerem) || 0;
+    state.xp.Baba = Number(data.xp.Baba) || 0;
+    if (data.duel) {
+        state.duel.Kerem = Number(data.duel.Kerem) || 0;
+        state.duel.Baba = Number(data.duel.Baba) || 0;
+    }
+    try {
+        localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {}
+    renderScoreUI();
+
+    if (showToastNotification && data.clientId !== CLIENT_ID) {
+        if (data.action === 'reset') {
+            toast(`🔄 ${data.by || 'Bir oyuncu'} tüm skorları sıfırladı! (0 XP)`);
+        }
+    }
+}
+
+function resetAllScores() {
+    state.xp = { Kerem: 0, Baba: 0 };
+    state.duel = { Kerem: 0, Baba: 0 };
+    if (typeof lhScoreVal !== 'undefined') {
+        lhScoreVal = 0;
+        const lhEl = document.getElementById('lhScore');
+        if (lhEl) lhEl.textContent = '0';
+    }
+    if (typeof weekQuizScore !== 'undefined') {
+        weekQuizScore = 0;
+    }
+    renderScoreUI();
+    syncScoresOnline('reset');
+    toast('🗑️ Kerem ve Baba skorları sıfırlandı! (Online eşitlendi)');
+}
+
+function initOnlineScoreSync() {
+    // 1. Load local cache immediately
+    try {
+        const cached = localStorage.getItem(SCORE_STORAGE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            applyRemoteScorePayload(parsed, false);
+        }
+    } catch (e) {}
+
+    // 2. Listen for cross-tab local storage / BroadcastChannel updates
+    window.addEventListener('storage', (ev) => {
+        if (ev.key === SCORE_STORAGE_KEY && ev.newValue) {
+            try { applyRemoteScorePayload(JSON.parse(ev.newValue), true); } catch (e) {}
+        }
+    });
+    if (scoreBroadcast) {
+        scoreBroadcast.onmessage = (ev) => {
+            if (ev.data) applyRemoteScorePayload(ev.data, true);
+        };
+    }
+
+    // 3. Fetch latest cloud state from ntfy.sh
+    const fetchLatestFromCloud = () => {
+        fetch(`https://ntfy.sh/${SCORE_SYNC_TOPIC}/json?poll=1&since=24h`)
+            .then(r => r.text())
+            .then(txt => {
+                if (!txt) return;
+                const lines = txt.trim().split('\n');
+                for (let i = 0; i < lines.length; i++) {
+                    try {
+                        const evt = JSON.parse(lines[i]);
+                        if (evt && evt.event === 'message' && evt.message) {
+                            const payload = JSON.parse(evt.message);
+                            applyRemoteScorePayload(payload, false);
+                        }
+                    } catch (e) {}
+                }
+            })
+            .catch(() => {});
+    };
+    fetchLatestFromCloud();
+
+    // 4. Real-time Server-Sent Events (SSE) stream for instant cross-device sync
+    if (typeof EventSource !== 'undefined') {
+        try {
+            const es = new EventSource(`https://ntfy.sh/${SCORE_SYNC_TOPIC}/sse`);
+            es.onmessage = (ev) => {
+                try {
+                    const evt = JSON.parse(ev.data);
+                    if (evt && evt.message) {
+                        const payload = JSON.parse(evt.message);
+                        applyRemoteScorePayload(payload, true);
+                    }
+                } catch (e) {}
+            };
+        } catch (e) {}
+    }
+
+    // 5. Fallback periodic sync every 5 seconds
+    setInterval(fetchLatestFromCloud, 5000);
+}
+
+// Start online score sync immediately
+setTimeout(initOnlineScoreSync, 100);
 
 function toast(msg) {
     const t = document.getElementById('toast');
@@ -279,8 +421,7 @@ function startDuel(type) {
 
 function addDuelPoint(who) {
     state.duel[who]++;
-    document.getElementById('duelKerem').textContent = state.duel.Kerem + ' Puan';
-    document.getElementById('duelBaba').textContent = state.duel.Baba + ' Puan';
+    updateScore();
     toast(who + ' 1 puan kazandı! 🏆');
     
     if (state.duel[who] >= 5) {
@@ -289,10 +430,9 @@ function addDuelPoint(who) {
             <h2 style='color:var(--green); font-size:35px;'>${who} KAZANDI!</h2>
             <p style='font-size:18px;'>Müthiş bir karşılaşmaydı! Aile XP'sine +50 eklendi.</p>
             <button class='cta' style='margin-top:20px; font-size:20px; padding:15px 30px;' onclick='go("home")'>Haritaya Dön</button>`;
-        state.xp[who] += 50; updateScore();
+        state.xp[who] += 50;
         state.duel = {Kerem: 0, Baba: 0};
-        document.getElementById('duelKerem').textContent = '0 Puan';
-        document.getElementById('duelBaba').textContent = '0 Puan';
+        updateScore();
         return true; // Game ended
     }
     return false; // Game continues
@@ -482,7 +622,7 @@ function checkEmojiTurn(sel, cor) {
 if(document.getElementById('wordBank')) renderWords();
 if(document.getElementById('answer')) renderAnswer();
 if(document.getElementById('dictSearch')) renderDict();
-updateScore();
+updateScore(true);
 
 // --- DIRECT GAMES LINK ---
 function openWeekGames(weekNum) { openWeek(weekNum); const tabs = document.querySelectorAll('.w-tab'); if(tabs.length >= 6) showW('w-games', tabs[5]); }

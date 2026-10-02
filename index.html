@@ -62,6 +62,9 @@
             <button onclick="showProfileModal()" style="background:var(--orange);color:#fff;border:none;padding:8px 14px;border-radius:15px;font-weight:900;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;">
                 🔄 Seçim Ekranı
             </button>
+            <button onclick="resetAllScores()" title="Kerem ve Baba puanlarını tüm cihazlarda sıfırla" style="background:var(--pink);color:#fff;border:none;padding:8px 14px;border-radius:15px;font-weight:900;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;">
+                🗑️ Skorları Sıfırla
+            </button>
             <div style="background:var(--yellow);color:var(--navy);font-weight:900;padding:8px 15px;border-radius:15px;font-size:13px;">
                 Aile Lv. <span id="familyLevel">1</span>
             </div>
@@ -236,7 +239,12 @@
             <!-- ===== DUEL PANEL ===== -->
             <div id="pnl-duel" class="n-panel" style="display:none;">
                 <div style="background:#fff;border-radius:25px;padding:25px;box-shadow:var(--shadow);border:3px solid #e3f0f7;">
-                    <h2 style="color:var(--navy);margin-top:0;">⚔️ Aile Düellosu</h2>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;">
+                        <h2 style="color:var(--navy);margin:0;">⚔️ Aile Düellosu</h2>
+                        <button onclick="resetAllScores()" style="background:var(--pink);color:#fff;border:none;padding:8px 16px;border-radius:12px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;">
+                            🗑️ Skorları Sıfırla & Yeniden Başla
+                        </button>
+                    </div>
                     
                     <!-- Scoreboard -->
                     <div style="background:linear-gradient(135deg,var(--navy),#1a4a8f);border-radius:20px;padding:20px;margin-bottom:20px;display:flex;justify-content:space-around;align-items:center;color:#fff;">
@@ -418,10 +426,9 @@ function showProfileModal() {
 window.setProfile = function(name, silent) {
     state.currentUser = name;
     if (!silent) {
-        state.xp[name] += 10;
-        toast('Hoş geldin ' + name + '! (' + (name === 'Baba' ? 'Orta & İleri Seviye' : 'Başlangıç & Orta Seviye') + ') 🚀 +10 XP');
+        toast('Hoş geldin ' + name + '! (' + (name === 'Baba' ? 'Orta & İleri Seviye' : 'Başlangıç & Orta Seviye') + ') 🚀');
     }
-    updateScore();
+    updateScore(true);
     document.body.className = 'profile-' + name.toLowerCase();
     document.getElementById('badge-Kerem').style.borderColor = name === 'Kerem' ? 'var(--blue)' : 'var(--border)';
     document.getElementById('badge-Baba').style.borderColor  = name === 'Baba'  ? 'var(--purple)' : 'var(--border)';
