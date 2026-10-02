@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nune — Senin İngilizce Arkadaşın!</title>
+    <link rel="stylesheet" href="css/nune.css">
+    <style>
+        /* ---- Compat shims ---- */
+        .cta { border:none; font-family:'Inter',sans-serif; cursor:pointer; font-weight:900; border-radius:13px; padding:10px 16px; color:#fff; }
+        .cta.green { background:var(--green); box-shadow:0 5px #217a48; }
+        .word-card { background:#f7fbff; border:2px solid var(--border); padding:15px; border-radius:15px; display:flex; flex-direction:column; gap:5px; }
+        .word-card b  { font-size:18px; color:var(--navy); }
+        .word-card small { color:#68809f; }
+        .speak { background:var(--blue); color:#fff; border:none; border-radius:8px; padding:6px 9px; font-weight:900; cursor:pointer; }
+        .noresult { grid-column:1/-1; text-align:center; padding:30px; font-weight:bold; color:var(--navy); }
+        .chip { background:#fff; border:2px solid var(--border); border-radius:12px; padding:9px 12px; font-weight:900; font-size:18px; display:inline-block; margin:3px; }
+        .word-btn { background:#fff; border:2px solid #c8dfed; border-radius:12px; padding:10px 13px; margin:5px; font-weight:900; box-shadow:0 3px #00000008; cursor:pointer; font-family:'Inter',sans-serif; }
+        .feedback { font-weight:900; margin-top:10px; min-height:24px; }
+        .builder { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        .word-bank, .answer-box { min-height:140px; border-radius:22px; padding:17px; background:#fff; border:3px dashed #cde5f3; }
+        .answer { min-height:50px; display:flex; gap:7px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+        .reset { background:#eef7fc; color:var(--navy); border:none; padding:8px 11px; border-radius:10px; font-weight:800; cursor:pointer; font-family:'Inter',sans-serif; }
+        /* Duel styles */
+        #duelContent { padding:10px; }
+        .duel-card { background:#fff; border-radius:20px; padding:20px; margin-bottom:15px; border:3px solid var(--border); }
+        .duel-score { display:flex; justify-content:space-around; background:var(--navy); color:#fff; border-radius:15px; padding:15px; margin-bottom:15px; font-weight:900; font-size:20px; text-align:center; }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">
+            <h1>Nune</h1>
+            <span>Senin İngilizce Arkadaşın!</span>
+        </div>
+
+        <nav class="nav-tabs">
+            <button class="active" onclick="showPanel('home',this)"><i>🏠</i> Ana Ekran</button>
+            <button onclick="showPanel('games',this)"><i>🎮</i> Oyunlar</button>
+            <button onclick="showPanel('duel',this)"><i>⚔️</i> Aile Düellosu</button>
+            <button onclick="showPanel('dict',this)"><i>📚</i> Sözlük</button>
+        </nav>
+
+        <div class="profiles">
+            <div class="profile-badge" id="badge-Kerem" style="cursor:pointer;border:3px solid var(--blue);" onclick="setProfile('Kerem')" title="Kerem Profiline Geç">
+                <div class="avatar">👦</div>
+                <div class="stats">
+                    <span style="color:var(--navy);font-weight:900;">Kerem <small style="color:var(--green);font-size:10px;">(A1-A2)</small></span>
+                    <span class="stars">⭐ <span id="keremXP">0 XP</span></span>
+                </div>
+            </div>
+            <div class="profile-badge" id="badge-Baba" style="cursor:pointer;" onclick="setProfile('Baba')" title="Baba Profiline Geç">
+                <div class="avatar">👨</div>
+                <div class="stats">
+                    <span style="color:var(--navy);font-weight:900;">Baba <small style="color:var(--purple);font-size:10px;">(B1-C1)</small></span>
+                    <span class="stars">⭐ <span id="babaXP">0 XP</span></span>
+                </div>
+            </div>
+            <button onclick="showProfileModal()" style="background:var(--orange);color:#fff;border:none;padding:8px 14px;border-radius:15px;font-weight:900;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;">
+                🔄 Seçim Ekranı
+            </button>
+            <div style="background:var(--yellow);color:var(--navy);font-weight:900;padding:8px 15px;border-radius:15px;font-size:13px;">
+                Aile Lv. <span id="familyLevel">1</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- GİRİŞ PROFİL SEÇİM EKRANI (MODAL) -->
+    <div id="profileSelectOverlay" style="position:fixed;inset:0;background:linear-gradient(135deg,rgba(9,45,99,0.94),rgba(32,137,216,0.92));z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);">
+        <div style="background:#fff;border-radius:32px;max-width:820px;width:100%;padding:35px;box-shadow:0 25px 60px rgba(0,0,0,0.35);border:4px solid var(--yellow);text-align:center;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:15px;margin-bottom:10px;">
+                <div class="nune-avatar" style="margin:0;width:80px;height:80px;"></div>
+                <div style="text-align:left;">
+                    <span style="background:#fff6c7;color:var(--orange);padding:4px 12px;border-radius:12px;font-weight:900;font-size:12px;border:1px solid var(--yellow);">🌟 FAMILY ENGLISH MISSION</span>
+                    <h1 style="margin:6px 0 0;color:var(--navy);font-size:28px;">Hoş Geldiniz! Bugün Kim Öğreniyor?</h1>
+                </div>
+            </div>
+            <p style="color:#68809f;font-weight:700;font-size:15px;margin:0 0 25px;">Seçiminize göre 12 haftalık ders programı, kelimeler ve oyun zorlukları otomatik ayarlanır.</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;">
+                <!-- KEREM CARD -->
+                <div onclick="setProfile('Kerem')" style="background:linear-gradient(135deg,#e4f7ff,#ffffff);border:4px solid var(--blue);border-radius:26px;padding:28px 22px;cursor:pointer;transition:.25s;text-align:center;box-shadow:0 10px 25px rgba(32,137,216,0.12);"
+                    onmouseover="this.style.transform='translateY(-6px)';this.style.borderColor='var(--green)';"
+                    onmouseout="this.style.transform='';this.style.borderColor='var(--blue)';">
+                    <div style="font-size:64px;margin-bottom:8px;">👦</div>
+                    <span style="background:var(--green);color:#fff;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:900;">BAŞLANGIÇ & ORTA SEVİYE (A1–A2)</span>
+                    <h2 style="color:var(--navy);font-size:26px;margin:12px 0 8px;">Kerem'in Macerası</h2>
+                    <p style="color:#68809f;font-size:13px;font-weight:700;line-height:1.5;margin:0 0 18px;">
+                        • 12 Haftalık Temel & Orta Müfredat<br>
+                        • Görsel Kelime Kartları & Günlük Cümleler<br>
+                        • Zamanlar (Geniş, Şimdiki, Geçmiş, Gelecek)<br>
+                        • Eğlenceli Oyunlar & Nune ile Pratik
+                    </p>
+                    <button class="cta green" style="width:100%;font-size:16px;padding:14px;border-radius:16px;">🚀 Kerem Olarak Başla</button>
+                </div>
+
+                <!-- BABA CARD -->
+                <div onclick="setProfile('Baba')" style="background:linear-gradient(135deg,#f3efff,#ffffff);border:4px solid var(--purple);border-radius:26px;padding:28px 22px;cursor:pointer;transition:.25s;text-align:center;box-shadow:0 10px 25px rgba(128,103,223,0.15);"
+                    onmouseover="this.style.transform='translateY(-6px)';this.style.borderColor='var(--orange)';"
+                    onmouseout="this.style.transform='';this.style.borderColor='var(--purple)';">
+                    <div style="font-size:64px;margin-bottom:8px;">👨</div>
+                    <span style="background:var(--purple);color:#fff;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:900;">ORTA & İLERİ SEVİYE (B1–C1)</span>
+                    <h2 style="color:var(--navy);font-size:26px;margin:12px 0 8px;">Baba'nın Programı</h2>
+                    <p style="color:#68809f;font-size:13px;font-weight:700;line-height:1.5;margin:0 0 18px;">
+                        • 4 Ana Zaman (Geniş, Şimdiki, Geçmiş, Gelecek)<br>
+                        • Orta & İleri Seviye Kelimeler ve Cümle Yapıları<br>
+                        • Tüm Zamanlarda Have/Has & Must / Have to / Had to<br>
+                        • İş & Günlük Hayatta Doğal Akıcılık
+                    </p>
+                    <button class="cta" style="background:var(--navy);width:100%;font-size:16px;padding:14px;border-radius:16px;box-shadow:0 5px #051a3b;">💼 Baba Olarak Başla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WRAPPER -->
+    <div class="wrapper">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div id="sidebarProgramTitle" style="padding:15px 18px;font-size:12px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);background:#f7fbff;">📅 12 Haftalık Program</div>
+            <div id="sidebarWeekList" style="display:flex;flex-direction:column;"></div>
+
+            <div style="margin-top:auto;padding:20px;border-top:1px solid var(--border);">
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <span style="font-size:28px;">🎯</span>
+                    <div>
+                        <b style="color:var(--navy);font-size:13px;">Günün Görevi</b>
+                        <div style="font-size:12px;color:var(--text);margin-top:3px;">5 kelime öğren, 3 cümle kur</div>
+                    </div>
+                </div>
+                <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;background:#f0f0f0;height:8px;border-radius:4px;"><div style="width:40%;background:var(--green);height:100%;border-radius:4px;"></div></div>
+                    <span style="font-weight:900;font-size:12px;">2/5</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="dashboard">
+
+            <!-- ===== HOME PANEL ===== -->
+            <div id="pnl-home" class="n-panel">
+
+                <div class="top-grid">
+                    <!-- Video + chapters -->
+                    <div class="video-box">
+                        <div class="video-player" style="background:#000;padding:0;">
+                            <video id="homeNuneVideo" src="nunevideo.mp4" poster="img/nune.jpg" controls playsinline style="width:100%;height:100%;max-height:360px;object-fit:cover;display:block;border-radius:11px;"></video>
+                        </div>
+                        <div class="video-chapters">
+                            <b style="color:var(--navy);font-size:14px;">📽 Video Bölümleri</b>
+                            <div class="chapter" style="background:#fff6c7;border:2px solid var(--yellow);" onclick="const v=document.getElementById('homeNuneVideo');if(v){v.currentTime=0;v.play();}">
+                                <span style="font-size:22px;color:var(--orange);">▶️</span>
+                                <div><b style="color:var(--orange);">1. Meet Nune!</b><br><span style="color:#a0b4c8;font-size:11px;">00:00 – 00:40</span></div>
+                            </div>
+                            <div class="chapter" onclick="openWeek(1)">
+                                <span style="font-size:22px;">📖</span>
+                                <div><b>2. Hafta 1 Dersine Git</b><br><span style="color:#a0b4c8;font-size:11px;">Konu & Kelimeler</span></div>
+                            </div>
+                            <div class="chapter" onclick="openWeek(2)">
+                                <span style="font-size:22px;">💪</span>
+                                <div><b>3. Hafta 2 Dersine Git</b><br><span style="color:#a0b4c8;font-size:11px;">Sonraki Konu</span></div>
+                            </div>
+                            <div class="chapter" onclick="openWeek(3)">
+                                <span style="font-size:22px;">🌞</span>
+                                <div><b>4. Hafta 3 Dersine Git</b><br><span style="color:#a0b4c8;font-size:11px;">Geniş Zaman / Süreç</span></div>
+                            </div>
+                            <div class="chapter" onclick="openGamesHub()">
+                                <span style="font-size:22px;">🎮</span>
+                                <div><b>5. Let's Practice!</b><br><span style="color:#a0b4c8;font-size:11px;">Oyun Merkezi</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nune Chat -->
+                    <div class="nune-chat">
+                        <div class="nune-avatar"></div>
+                        <div class="chat-bubble" id="nChatText">
+                            Merhaba! Ben <b>NUNE</b> 👋<br>Bugün seninle İngilizce öğreneceğiz!<br><br>Hazır mısın?
+                        </div>
+                        <div class="chat-btns" id="nChatBtns">
+                            <button class="chat-btn" style="background:#fff6c7;border-color:var(--yellow);color:var(--navy);" onclick="nChatAction(1)">Evet, hazırım! 🚀</button>
+                            <button class="chat-btn" onclick="openWeek(1)">1. Hafta Dersine Başla 📖</button>
+                            <button class="chat-btn" onclick="nChatAction('games')">Oyunlara Geç 🎮</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom grid -->
+                <div class="bottom-grid" style="margin-top:15px;">
+                    <div class="card" id="homeGrammarCard">
+                        <!-- Dynamically filled by renderHomeContent() -->
+                    </div>
+
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <h3>🔤 Bu Haftanın Kelimeleri</h3>
+                            <button style="background:var(--sky);color:var(--blue);border:none;padding:5px 14px;border-radius:10px;font-weight:800;cursor:pointer;" onclick="showPanel('dict',document.querySelectorAll('.nav-tabs button')[3])">Tümünü Gör</button>
+                        </div>
+                        <div id="homeWordsGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;">
+                            <!-- Dynamically filled by renderHomeContent() -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Games row -->
+                <div class="games-row">
+                    <button class="game-btn" style="background:var(--green);" onclick="openGame('sb')"><i>🧩</i><span>Cümle Kurma</span></button>
+                    <button class="game-btn" style="background:var(--yellow);color:var(--navy);" onclick="openGame('lh')"><i>🔍</i><span>Letter Hunter</span></button>
+                    <button class="game-btn" style="background:var(--purple);" onclick="openGame('wm')"><i>🔗</i><span>Kelime Eşleştir</span></button>
+                    <button class="game-btn" style="background:var(--blue);" onclick="openGame('mw')"><i>🧩</i><span>Boşluğu Doldur</span></button>
+                    <button class="game-btn" style="background:var(--pink);" onclick="openGame('ls')"><i>🎧</i><span>Dinle ve Yaz</span></button>
+                </div>
+            </div>
+
+            <!-- ===== GAMES PANEL ===== -->
+            <div id="pnl-games" class="n-panel" style="display:none;">
+                <div style="background:#fff;border-radius:25px;padding:25px;box-shadow:var(--shadow);border:3px solid #e3f0f7;">
+                    <h2 style="color:var(--navy);margin-top:0;">🎮 Oyun Merkezi</h2>
+                    <div id="gamesHubMenu" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;">
+                        <div class="game-card" onclick="openGame('lh')"><span>🔍</span><b>Letter Hunter</b><small>Harflerden kelime üret</small></div>
+                        <div class="game-card" onclick="openGame('mw')"><span>🧩</span><b>Boşluğu Doldur</b><small>Doğru kelimeyi seç</small></div>
+                        <div class="game-card" onclick="openGame('tf')"><span>⚖️</span><b>Doğru mu Yanlış mı?</b><small>Cümleyi kontrol et</small></div>
+                        <div class="game-card" onclick="openGame('sb')"><span>🚀</span><b>Sentence Builder</b><small>Kelimelerden cümle kur</small></div>
+                        <div class="game-card" onclick="openGame('wm')"><span>🔗</span><b>Kelime Eşleştir</b><small>Türkçe-İngilizce eşleştir</small></div>
+                        <div class="game-card" onclick="openGame('ls')"><span>🎧</span><b>Dinle ve Yaz</b><small>Duyduğunu yaz</small></div>
+                    </div>
+                    <div id="soloGameArea" style="display:none;margin-top:20px;background:#f7fbff;border-radius:20px;padding:25px;border:2px dashed #dcecf5;"></div>
+                </div>
+            </div>
+
+            <!-- ===== DUEL PANEL ===== -->
+            <div id="pnl-duel" class="n-panel" style="display:none;">
+                <div style="background:#fff;border-radius:25px;padding:25px;box-shadow:var(--shadow);border:3px solid #e3f0f7;">
+                    <h2 style="color:var(--navy);margin-top:0;">⚔️ Aile Düellosu</h2>
+                    
+                    <!-- Scoreboard -->
+                    <div style="background:linear-gradient(135deg,var(--navy),#1a4a8f);border-radius:20px;padding:20px;margin-bottom:20px;display:flex;justify-content:space-around;align-items:center;color:#fff;">
+                        <div style="text-align:center;">
+                            <div style="font-size:50px;">👦</div>
+                            <div style="font-size:22px;font-weight:900;">Kerem</div>
+                            <div id="duelKerem" style="font-size:42px;font-weight:900;color:var(--yellow);">0 Puan</div>
+                        </div>
+                        <div style="font-size:36px;font-weight:900;opacity:0.7;">VS</div>
+                        <div style="text-align:center;">
+                            <div style="font-size:50px;">👨</div>
+                            <div style="font-size:22px;font-weight:900;">Baba</div>
+                            <div id="duelBaba" style="font-size:42px;font-weight:900;color:var(--yellow);">0 Puan</div>
+                        </div>
+                    </div>
+
+                    <!-- Game select buttons -->
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+                        <button class="game-btn" style="background:linear-gradient(135deg,var(--blue),#55b8f0);" onclick="startDuel('tabu')">
+                            <i>🗣️</i><span>Anlat Bakalım</span><small style="font-size:11px;font-weight:700;">Tabu oyunu</small>
+                        </button>
+                        <button class="game-btn" style="background:linear-gradient(135deg,var(--orange),#ffb25c);" onclick="startDuel('time')">
+                            <i>⏱️</i><span>Süreli Yarış</span><small style="font-size:11px;font-weight:700;">Kelime hız testi</small>
+                        </button>
+                        <button class="game-btn" style="background:linear-gradient(135deg,var(--purple),#ad8cf1);" onclick="startDuel('emoji')">
+                            <i>😀</i><span>Emojiyi Bul</span><small style="font-size:11px;font-weight:700;">Emoji eşleştir</small>
+                        </button>
+                    </div>
+
+                    <!-- How to play hint -->
+                    <div id="duelHowTo" style="background:#fff6c7;border-radius:15px;padding:15px;margin-bottom:15px;display:flex;gap:12px;align-items:center;border:2px solid var(--yellow);">
+                        <span style="font-size:40px;">👧🏻</span>
+                        <div>
+                            <b style="color:var(--orange);">Nasıl Oynanır?</b>
+                            <p style="margin:5px 0 0;font-size:13px;font-weight:700;">
+                                🗣️ <b>Anlat Bakalım:</b> Kelimeyi anlatana kadar sır! Baba daha zor kelimeler alır.<br>
+                                ⏱️ <b>Süreli Yarış:</b> Kerem 20sn + kolay, Baba 12sn + zor. Kim çok doğru bilirse kazanır.<br>
+                                😀 <b>Emojiyi Bul:</b> Sırayla kelimeye uygun emojiyi bul. 5 puana ilk ulaşan kazanır!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Game area (filled by JS) -->
+                    <div id="duelContent" style="background:#f7fbff;border-radius:20px;padding:25px;min-height:120px;text-align:center;color:var(--navy);font-weight:700;border:2px dashed #dcecf5;">
+                        <div style="font-size:50px;margin-bottom:10px;">⚔️</div>
+                        <div style="font-size:18px;color:#68809f;">Yukarıdan bir oyun seç ve düelloyu başlat!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== DICT PANEL ===== -->
+            <div id="pnl-dict" class="n-panel" style="display:none;">
+                <div style="background:#fff;border-radius:25px;padding:25px;box-shadow:var(--shadow);border:3px solid #e3f0f7;">
+                    <h2 style="color:var(--navy);margin-top:0;">📚 Sözlük</h2>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;">
+                        <input id="dictSearch" placeholder="İngilizce veya Türkçe kelime ara..." oninput="renderDict()" style="flex:1;padding:14px;border-radius:15px;border:2px solid var(--border);font-size:16px;font-family:'Inter',sans-serif;outline:none;">
+                        <button onclick="document.getElementById('dictSearch').value='';renderDict();" style="background:var(--blue);color:#fff;border:none;padding:0 20px;border-radius:15px;font-weight:900;cursor:pointer;">Temizle</button>
+                    </div>
+                    <div id="dictGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:22px;left:50%;transform:translate(-50%,30px);background:var(--navy);color:#fff;padding:13px 18px;border-radius:15px;opacity:0;pointer-events:none;transition:.25s;z-index:99;font-weight:900;"></div>
+
+<style>
+.word-tile { text-align:center;background:var(--sky);padding:10px;border-radius:15px;border:2px solid var(--border);cursor:pointer;transition:.2s; }
+.word-tile:hover { transform:translateY(-3px);border-color:var(--blue); }
+.word-tile span { display:block;font-size:32px;margin-bottom:5px; }
+.word-tile b { display:block;color:var(--navy);font-size:14px; }
+.word-tile small { color:var(--blue);font-size:11px; }
+.game-card { background:var(--sky);border-radius:20px;padding:25px;text-align:center;cursor:pointer;border:2px solid var(--border);transition:.2s; }
+.game-card:hover { transform:translateY(-5px);border-color:var(--blue);box-shadow:0 8px 20px rgba(32,137,216,.15); }
+.game-card span { display:block;font-size:45px;margin-bottom:12px; }
+.game-card b { display:block;color:var(--navy);font-size:17px;margin-bottom:6px; }
+.game-card small { color:#68809f;font-size:13px; }
+/* Week sub-tabs */
+.wtab { background:#fff;border:2px solid var(--border);color:var(--navy);padding:10px 16px;border-radius:14px;font-family:'Inter',sans-serif;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;transition:.2s; }
+.wtab:hover { border-color:var(--blue);color:var(--blue); }
+.wtab.active { background:var(--navy);color:#fff;border-color:var(--navy); }
+</style>
+
+<script src="js/app.js"></script>
+<script src="js/weeks.js"></script>
+<script>
+// =============================================
+// NUNE ROUTING — overrides app.js legacy calls
+// =============================================
+
+// Map old panel IDs → new Nune panel IDs
+const PANEL_MAP = { 'gamesHub':'games', 'duelView':'duel', 'weekView':'home', 'home':'home', 'dictionary':'dict' };
+
+// Helper: pause all videos, then play the video inside the given container once
+function playPanelVideoOnce(container) {
+    document.querySelectorAll('video').forEach(v => { v.pause(); v.loop = false; });
+    if (!container) return;
+    const vid = container.querySelector('video');
+    if (vid) {
+        vid.loop = false;
+        vid.currentTime = 0;
+        vid.play().catch(() => {});
+    }
+}
+
+// Override go() used by app.js internally
+window.go = function(id) {
+    const mapped = PANEL_MAP[id] || id;
+    document.querySelectorAll('.n-panel').forEach(p => p.style.display = 'none');
+    const target = document.getElementById('pnl-' + mapped);
+    if (target) {
+        target.style.display = 'block';
+        playPanelVideoOnce(target);
+    }
+    // sync nav highlight
+    document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+    const navMap = { games: 1, duel: 2, dict: 3, home: 0 };
+    const navBtns = document.querySelectorAll('.nav-tabs button');
+    if (navMap[mapped] !== undefined) navBtns[navMap[mapped]]?.classList.add('active');
+};
+
+// Panel switcher used by HTML buttons
+function showPanel(id, btn) {
+    window.go(id);
+    if (btn) {
+        document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    if (id === 'dict') { document.getElementById('dictSearch').value = ''; renderDict(); }
+}
+
+// Open games hub (reset to menu)
+window.openGamesHub = function() {
+    window.go('games');
+    document.getElementById('gamesHubMenu').style.display = 'grid';
+    document.getElementById('soloGameArea').style.display = 'none';
+};
+
+// Open a solo game (show games panel first, then launch)
+function openGame(type) {
+    window.go('games');
+    document.getElementById('gamesHubMenu').style.display = 'none';
+    document.getElementById('soloGameArea').style.display = 'block';
+    launchSoloGame(type);
+}
+
+// Override startDuel: show duel panel then run game logic
+window.startDuel = function(type) {
+    window.go('duel');
+    // Hide howto hint after first game
+    const howTo = document.getElementById('duelHowTo');
+    if (howTo) howTo.style.display = 'none';
+    clearInterval(duelTimer);
+    clearInterval(window._duelSync);
+
+    if (type === 'tabu') {
+        tabuTurn = 'Kerem';
+        renderTabuTurn();
+    } else if (type === 'time') {
+        timeScores = { Kerem: 0, Baba: 0 };
+        timeActivePlayer = 'Kerem';
+        showTimeTurn();
+    } else if (type === 'emoji') {
+        emojiTurn = 'Kerem';
+        renderEmojiTurn();
+    }
+};
+
+// Show entrance modal
+function showProfileModal() {
+    document.querySelectorAll('video').forEach(v => v.pause());
+    const ov = document.getElementById('profileSelectOverlay');
+    if (ov) ov.style.display = 'flex';
+}
+
+// Override setProfile
+window.setProfile = function(name, silent) {
+    state.currentUser = name;
+    if (!silent) {
+        state.xp[name] += 10;
+        toast('Hoş geldin ' + name + '! (' + (name === 'Baba' ? 'Orta & İleri Seviye' : 'Başlangıç & Orta Seviye') + ') 🚀 +10 XP');
+    }
+    updateScore();
+    document.body.className = 'profile-' + name.toLowerCase();
+    document.getElementById('badge-Kerem').style.borderColor = name === 'Kerem' ? 'var(--blue)' : 'var(--border)';
+    document.getElementById('badge-Baba').style.borderColor  = name === 'Baba'  ? 'var(--purple)' : 'var(--border)';
+
+    // Hide entrance overlay if open
+    const ov = document.getElementById('profileSelectOverlay');
+    if (ov && !silent) ov.style.display = 'none';
+
+    // Re-render 12 weeks sidebar and home content for the selected profile
+    if (typeof renderSidebarWeeks === 'function') renderSidebarWeeks();
+    if (typeof renderHomeContent === 'function') renderHomeContent();
+
+    // Update Nune chat greeting
+    const chatText = document.getElementById('nChatText');
+    if (chatText) {
+        chatText.innerHTML = name === 'Baba'
+            ? 'Merhaba <b>Baba</b>! 👋<br>Senin için <b>Orta & İleri Seviye (B1–C1)</b> 12 haftalık programı ve ileri kelimeleri hazırladım!'
+            : 'Merhaba <b>Kerem</b>! 👋<br>Senin için <b>Başlangıç & Orta Seviye (A1–A2)</b> 12 haftalık eğlenceli programı hazırladım!';
+    }
+
+    // If a week panel is currently open, refresh it with the new profile's curriculum
+    const weekPnl = document.getElementById('pnl-week');
+    if (weekPnl && weekPnl.style.display === 'block' && typeof openWeek === 'function') {
+        openWeek(activeWeekNum || 1);
+    } else if (!silent) {
+        // Play home video once when user enters home screen
+        const homePnl = document.getElementById('pnl-home');
+        if (homePnl && homePnl.style.display !== 'none') {
+            playPanelVideoOnce(homePnl);
+        }
+    }
+    // If dictionary is open, refresh it
+    const dictPnl = document.getElementById('pnl-dict');
+    if (dictPnl && dictPnl.style.display === 'block') {
+        renderDict();
+    }
+};
+
+// Nune Chat dialogue
+const _nuneChats = {
+    1: { text:'Harika! 🎉 Sol menüden 12 haftalık derslere tıklayabilir veya aşağıdaki kelimeleri sesli dinleyebilirsin!', btns:[{t:'1. Haftaya Başla 📖',a:'week1'},{t:'Oyunlara Geç 🎮',a:'games'},{t:'Sözlüğe Bak 📚',a:'dict'}] },
+    2: { text:'Tamam! Hazır olunca buraya dön. Seni bekliyorum 💖', btns:[{t:'Şimdi Hazırım!',a:1}] },
+    3: { text:'Ne zaman istersen buradayım! 💖', btns:[{t:'Şimdi Hazırım!',a:1}] },
+};
+function nChatAction(a) {
+    if (a === 'week1') { openWeek(1); return; }
+    if (a === 'games') { showPanel('games', document.querySelectorAll('.nav-tabs button')[1]); return; }
+    if (a === 'dict')  { showPanel('dict',  document.querySelectorAll('.nav-tabs button')[3]); return; }
+    const c = _nuneChats[a];
+    if (!c) return;
+    document.getElementById('nChatText').innerHTML = c.text;
+    document.getElementById('nChatBtns').innerHTML = c.btns.map(b =>
+        `<button class="chat-btn" onclick='nChatAction(${JSON.stringify(b.a)})'>${b.t}</button>`
+    ).join('');
+}
+
+// Give 2nd nav button an ID for reference
+document.querySelectorAll('.nav-tabs button')[1].id = 'navGamesBtn';
+
+// Init background as Kerem while keeping the entrance profile selection modal open
+setProfile('Kerem', true);
+</script>
+</body>
+</html>

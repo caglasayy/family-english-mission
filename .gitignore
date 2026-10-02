@@ -1,0 +1,11 @@
+# Temporary helper scripts and raw images
+append.py
+append_lh.py
+append_new_games.py
+fix_games.py
+merge_nune.py
+patch_games.py
+ChatGPT Image*.png
+nüne.png
+.DS_Store
+Thumbs.db
